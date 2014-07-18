@@ -2,13 +2,14 @@
 Python3 Pygame Platform game
 2014 by Daniel-Eichler
 
-Based on Tutorial by:
-
+Based on Tutorials of:
 Sample Python/Pygame Programs
 Simpson College Computer Science
 http://programarcadegames.com/
 http://simpson.edu/computer-science/
 
+supported by:
+http://spielend-programmieren.at
 
 """
 import pygame
@@ -29,6 +30,52 @@ GREEN    = (   0, 255,   0)
 SCREEN_WIDTH  = 1800
 SCREEN_HEIGHT = 900
 
+class Alien(pygame.sprite.Sprite):
+    """
+    This is an alien enemy
+    """
+
+    # -- Class Attributes
+    images=[]
+    #images.append(pygame.image.load("alien100.png").convert_alpha())
+    alienimage=pygame.Surface((80,80))
+    alienimage.set_colorkey((0,0,0))
+    pygame.draw.circle(alienimage,GREEN,(40,40),40,1)
+    #alienimage.set_colorkey=((0,0,0))
+    
+  
+
+    # -- Methods
+    def __init__(self,x,y):
+        """ Constructor function """
+
+        # Call the parent's constructor
+        pygame.sprite.Sprite.__init__(self)
+        self.x=x
+        self.y=y
+        self.boundary_top = 0
+        self.boundary_bottom = SCREEN_HEIGHT
+        self.boundary_left = 0
+        self.boundary_right = 0
+        self.change_x=0
+        self.change_y=0
+        #self.image=Alien.images[0]
+        self.image = Alien.alienimage
+        self.rect=self.image.get_rect()
+        self.rect.centerx=self.x
+        self.rect.centery=self.y
+        self.hitpoints=100
+        self.hitpointsfull=100
+        
+
+      
+
+       
+        
+
+    def update(self, seconds):
+        pass
+        
 class Player(pygame.sprite.Sprite):
     """
     This class represents the bar at the bottom that the player controls.
@@ -379,6 +426,7 @@ class Level(object):
         self.teleporter_list = pygame.sprite.Group()
         self.enemy_list = pygame.sprite.Group()
         self.moving_list = pygame.sprite.Group()
+        self.alien_lilst  =pygame.sprite.Group()
         self.player = player
 
     # Update everythign on this level
@@ -433,7 +481,12 @@ class Level_01(Level):
                  [240, 50, 100, 480],
                  ] 
 
-
+        self.alien_list=[]
+        a1=Alien(100, 100)
+        self.alien_list.append(a1)
+        self.platform_list.add(a1)
+        
+        
         # Go through the array above and add platforms
         for platform in level:
             block = Platform(platform[0], platform[1])
@@ -635,25 +688,43 @@ def main():
             if event.type == pygame.QUIT: # If user clicked close
                 done = True # Flag that we are done so we exit this loop
 
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    player.go_left()
-                if event.key == pygame.K_RIGHT:
-                    player.go_right()
-                if event.key == pygame.K_UP:
-                    player.jump()
+            #if event.type == pygame.KEYDOWN:
+            #    if event.key == pygame.K_LEFT:
+            #        player.go_left()
+            #    if event.key == pygame.K_RIGHT:
+            #        player.go_right()
+            #    if event.key == pygame.K_UP:
+            #        player.jump()
 
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT and player.change_x < 0:
-                    player.stop()
-                if event.key == pygame.K_RIGHT and player.change_x > 0:
-                    player.stop()
+            #if event.type == pygame.KEYUP:
+            #    if event.key == pygame.K_LEFT and player.change_x < 0:
+            #        player.stop()
+            #    if event.key == pygame.K_RIGHT and player.change_x > 0:
+            #        player.stop()
+            
+        # player movement ( CONTROLLER )
+        # check if key is pressed at this moment
+        pressedkeys = pygame.key.get_pressed()
+        
+        player.stop() 
+        if pressedkeys[pygame.K_LEFT]:
+             player.go_left()
+        
+        if pressedkeys[pygame.K_RIGHT]:
+             player.go_right()
+        
+        if pressedkeys[pygame.K_UP]:
+             player.jump()  
 
         # Update the player.
         active_sprite_list.update(seconds)
-
+       
         # Update items in the level
         current_level.update(seconds)
+        #update aliens
+        for enemy in current_level.alien_list:
+            
+            enemy.update(seconds)
 
         # If the player gets near the right side, shift the world left (-x)
         if player.rect.right >= 500:

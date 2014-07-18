@@ -37,11 +37,15 @@ class Alien(pygame.sprite.Sprite):
 
     # -- Class Attributes
     images=[]
-    #images.append(pygame.image.load("alien100.png").convert_alpha())
-    alienimage=pygame.Surface((80,80))
-    alienimage.set_colorkey((0,0,0))
-    pygame.draw.circle(alienimage,GREEN,(40,40),40,1)
-    #alienimage.set_colorkey=((0,0,0))
+    try:
+       images.append(pygame.image.load("alien100.bmp"))
+    except:
+       alienimage=pygame.Surface((60,60))
+       alienimage.set_colorkey((0,0,0))
+       pygame.draw.circle(alienimage,GREEN,(30,30),30,1)
+       #alienimage.convert_alpha()
+       images.append(alienimage)
+       #alienimage.set_colorkey=((0,0,0))
     
   
 
@@ -59,8 +63,7 @@ class Alien(pygame.sprite.Sprite):
         self.boundary_right = 0
         self.change_x=0
         self.change_y=0
-        #self.image=Alien.images[0]
-        self.image = Alien.alienimage
+        self.image=Alien.images[0]
         self.rect=self.image.get_rect()
         self.rect.centerx=self.x
         self.rect.centery=self.y
@@ -83,11 +86,11 @@ class Player(pygame.sprite.Sprite):
 
     # -- Attributes
     # Set speed vector of player
-    change_x = 0
-    change_y = 0
+    #change_x = 0
+    #change_y = 0
 
     # List of sprites we can bump against
-    level = None
+    #level = None
 
     # -- Methods
     def __init__(self):
@@ -100,11 +103,13 @@ class Player(pygame.sprite.Sprite):
         # This could also be an image loaded from the disk.
         width = 40
         height = 60
-        self.hitpointsfull=1000.0
-        self.hitpoints=1000.0
+        self.hitpointsfull=600.0
+        self.hitpoints=600.0
         self.image = pygame.Surface([width, height])
         self.image.fill(RED)
-        self.travelplatform = False
+        self.moving_with_platform = False
+        self.change_x = 0
+        self.change_y = 0
 
         # Set a referance to the image rect.
         self.rect = self.image.get_rect()
@@ -112,59 +117,58 @@ class Player(pygame.sprite.Sprite):
 
     def update(self, seconds):
         """ Move the player. """
-        # Gravity
-        self.calc_grav()
+        
+        if self.moving_with_platform:
+            pass
+        else: 
+           self.calc_grav() # Gravity
 
-        # Move left/right
-        self.rect.x += self.change_x*seconds
+           # Move left/right
+           self.rect.x += self.change_x*seconds
 
-        # See if we hit anything
-        block_hit_list = pygame.sprite.spritecollide(self, self.level.platform_list, False)
-        for block in block_hit_list:
-            # If we are moving right,
-            # set our right side to the left side of the item we hit
-            if self.change_x > 0:
-                self.rect.right = block.rect.left
-            elif self.change_x < 0:
-                # Otherwise if we are moving left, do the opposite.
-                self.rect.left = block.rect.right
+           # See if we hit anything
+           block_hit_list = pygame.sprite.spritecollide(self, self.level.platform_list, False)
+           for block in block_hit_list:
+                # If we are moving right,
+                # set our right side to the left side of the item we hit
+                if self.change_x > 0:
+                    self.rect.right = block.rect.left
+                elif self.change_x < 0:
+                    # Otherwise if we are moving left, do the opposite.
+                    self.rect.left = block.rect.right
 
-        # Move up/down
-        self.rect.y += self.change_y*seconds
+           # Move up/down
+           self.rect.y += self.change_y*seconds
 
-        # Check and see if we hit anything
-        block_hit_list = pygame.sprite.spritecollide(self, self.level.platform_list, False)
-        for block in block_hit_list:
+           # Check and see if we hit anything
+           block_hit_list = pygame.sprite.spritecollide(self, self.level.platform_list, False)
+           for block in block_hit_list:
 
-            # Reset our position based on the top/bottom of the object.
-            if self.change_y > 0:
-                self.rect.bottom = block.rect.top
-                #lava? is the current block where the player stands on made out of lava?
-                if self.level.lava_list.has(block):
-                    self.hitpoints-=2500*seconds # player looses one hitpoint
-                #spikes?  is the current block, where the player stands on made out of spikes?
-                if self.level.spike_list.has(block):
-                    self.hitpoints-=40000*seconds
-                #teleporter? is the current block ,where the playre stands on made out of active teleporters???
-                if self.level.teleporter_list.has(block):
-                    if block.target != None:
-                        #beam player to target teleporter
-                        self.rect.x= block.target.rect.x
-                        self.rect.y =block.target.rect.y-120  # above the target teleporter
-                if self.level.moving_list.has(block):
-                    self.rect.centerx = block.rect.centerx
-                        
-               
-              
-                    
-            elif self.change_y < 0:
-                self.rect.top = block.rect.bottom
+                # Reset our position based on the top/bottom of the object.
+                if self.change_y > 0:
+                    self.rect.bottom = block.rect.top
+                    #lava? is the current block where the player stands on made out of lava?
+                    if self.level.lava_list.has(block):
+                        self.hitpoints-=50000*seconds # player looses one hitpoint
+                    #spikes?  is the current block, where the player stands on made out of spikes?
+                    if self.level.spike_list.has(block):
+                        self.hitpoints-=90000*seconds
+                    #teleporter? is the current block ,where the playre stands on made out of active teleporters???
+                    if self.level.teleporter_list.has(block):
+                        if block.target != None:
+                            #beam player to target teleporter
+                            self.rect.x= block.target.rect.x
+                            self.rect.y =block.target.rect.y-120  # above the target teleporter
+                    if self.level.moving_list.has(block):
+                        self.rect.centerx = block.rect.centerx
+                            
+                elif self.change_y < 0:
+                    self.rect.top = block.rect.bottom
 
-            # Stop our vertical movement
-            self.change_y = 0
+                # Stop our vertical movement
+                self.change_y = 0
 
-            if isinstance(block, MovingPlatform):
-                self.rect.x += block.change_x
+           
 
     def calc_grav(self):
         """ Calculate effect of gravity. """
@@ -199,12 +203,12 @@ class Player(pygame.sprite.Sprite):
 
     def go_right(self):
         """ Called when the user hits the right arrow. """
-        self.change_x = 1400
+        self.change_x = 1500
 
     def stop(self):
         """ Called when the user lets off the keyboard. """
-        if not self.travelplatform:
-           self.change_x = 0
+        #if not self.moving_with_platform
+        self.change_x = 0
         
         
 class Lifebar(pygame.sprite.Sprite):
@@ -324,12 +328,6 @@ class LavaPlatform(Platform):
 class MovingPlatform(Platform):
     """ This is a fancier platform that can actually move. """
     
-    
-  
-
-    player = None
-
-    level = None
 
     def update(self,seconds):
         """ Move the platform.
@@ -381,22 +379,23 @@ class MovingPlatform(Platform):
 
         # Check the boundaries and see if we need to reverse
         # direction.
-        if self.rect.bottom > self.boundary_bottom:
-            self.rect.bottom = self.boundary_bottom
+        if self.rect.bottom >= self.boundary_bottom:
+            self.rect.bottom = self.boundary_bottom-1
             self.change_y *= -1
         
-        if self.rect.top < self.boundary_top:
-            self.rect.top = self.boundary_top
+        if self.rect.top <= self.boundary_top:
+            self.rect.top = self.boundary_top+1
             self.change_y *= -1
+           
         # world shift
         cur_pos = self.rect.x - self.level.world_shift
         
         # left right boundary ?
-        if cur_pos < self.boundary_left:
+        if cur_pos <= self.boundary_left:
             cur_pos = self.boundary_left
             self.change_x *= -1
         
-        if cur_pos > self.boundary_right:
+        if cur_pos >= self.boundary_right:
             cur_pos = self.boundary_right
             self.change_x *= -1
 
@@ -477,14 +476,28 @@ class Level_01(Level):
                  [210, 70, 1000,600],
                  [210, 70, 1300, 450],
                  [70, 50, 270, 600],
-                 [70, 50, 2100, 500],
-                 [240, 50, 100, 480],
+                 [70, 50, 2060, 500],
+                 [500, 50, 30, 480],
+                 [240, 50, 2300, 530],
+                 [240,50, 3200, 500],
+                 [240, 50, 3850, 100],
                  ] 
 
         self.alien_list=[]
         a1=Alien(100, 100)
         self.alien_list.append(a1)
         self.platform_list.add(a1)
+        
+         # Add a up, down moving platform
+        block = MovingPlatform(70, 70)
+        block.rect.x = 360#3600
+        block.rect.y = 200
+        block.boundary_top = 10
+        block.boundary_bottom = 550
+        block.change_y = -500
+        block.player = self.player
+        block.level = self
+        self.platform_list.add(block)
         
         
         # Go through the array above and add platforms
@@ -502,6 +515,14 @@ class Level_01(Level):
         block.player = self.player
         self.platform_list.add(block)
         self.lava_list.add(block)
+        
+        #Now we add the 2nd Ground LavaPlatform :D
+        block= LavaPlatform(40, 50)
+        block.rect.x = 2900
+        block.rect.y = 600
+        block.player = self.player
+        self.platform_list.add(block)
+        self.lava_list.add(block)
        
         
         #Now we add the SpikePlatform :D
@@ -514,7 +535,7 @@ class Level_01(Level):
         
         #Now we add the 1st active TeleporterPlatform :D
         tele1= TeleporterPlatform(100, 70)
-        tele1.rect.x = 50
+        tele1.rect.x = 30
         tele1.rect.y = 600
         tele1.player = self.player
         self.platform_list.add(tele1)
@@ -522,8 +543,8 @@ class Level_01(Level):
         
         #Now we add the 1st passive TeleporterPlatform :D
         tele2= TeleporterPlatform(100, 70)
-        tele2.rect.x = 2200
-        tele2.rect.y = 250
+        tele2.rect.x = 1400
+        tele2.rect.y = 100
         tele2.player = self.player
         self.platform_list.add(tele2)
         self.teleporter_list.add(tele2)
@@ -532,17 +553,17 @@ class Level_01(Level):
         tele1.target=tele2
         #tele2.target=tele1
 
-        # Add a custom moving platform
-        block = MovingPlatform(70, 40)
-        block.rect.x = 1600
-        block.rect.y = 500
-        block.boundary_left = 1000
-        block.boundary_right = 2000
-        block.change_x = 700
-        block.player = self.player
-        block.level = self
-        self.platform_list.add(block)
-        self.moving_list.add(block)
+        # Add a left, right moving platform
+        #block = MovingPlatform(70, 40)
+       # block.rect.x = 1600
+        #block.rect.y = 500
+       # block.boundary_left = 1000
+        #block.boundary_right = 2000
+       # block.change_x = 700
+        #block.player = self.player
+        #block.level = self
+       # self.platform_list.add(block)
+       # self.moving_list.add(block)
 
 
 # Create platforms for the level
